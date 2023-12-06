@@ -38,9 +38,9 @@ class Job():
     else:
       self.pos = pos
 
-j1=Job(10, [[8,10]])
-j2=Job(10, [[1,2],[4,5],[7,10]])
-len_gen = 30
+j1=Job(10, [[7,10]])
+j2=Job(10, [[2,4],[6,7],[9,10]])
+len_gen = 100
 
 class TernaryTree():
   def __init__(self, pos1, pos2, time_spent, num_success):
@@ -127,6 +127,9 @@ class TernaryTree():
 options=[]
 
 main_tree=TernaryTree(0,0,0,0)
-print(main_tree.branching())
+a,b,c = main_tree.branching()
+print('num of successful jobs : ', a)
+print('selected branch list   : ', b)
+print('each timeline list     : ', c)
 
 
