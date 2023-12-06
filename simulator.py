@@ -23,8 +23,9 @@ class Job():
       t=(self.total_time-pos)/quota
     else:
       t=(self.com_list[a][b]-pos)/quota
-    return t
+    return t, b
     # t is the actual time spent in the real world
+    # if b==0, computation, else, communication so have to get it stuck
 
   def move(self, quota, t):
     pos = self.pos
@@ -37,8 +38,8 @@ class Job():
     else:
       self.pos = pos
 
-j1=Job(20, [[10,20]])
-j2=Job(5, [[3,5]])
+j1=Job(10, [[8,10]])
+j2=Job(10, [[1,2],[4,5],[7,10]])
 len_gen = 30
 
 class TernaryTree():
@@ -51,56 +52,76 @@ class TernaryTree():
   def branching(self):
     if self.time_spent > len_gen:
 # -1 means the last of the sequence of options we should pick
-      return self.num_success, [-1]
+      return self.num_success, [-1], [[self.pos1, self.pos2]]
     else:
       nc_cand=[0,0,0]
       l_cand=[[],[],[]]
+      pos_cand=[[],[],[]]
+
+      # at least one of them is computation
+      j1.pos = self.pos1
+      j2.pos = self.pos2
+      t1, b1=j1.next(1)
+      t2, b2=j2.next(1)
+      t=t1
+      b=-1
+      nc=0
+      if b1==0 or b2==0:
+        if t1>t2:
+          t=t2
+        j1.move(1,t)
+        j2.move(1,t)
+        if j1.pos < self.pos1:
+          nc = nc+1
+        if j2.pos < self.pos2:
+          nc = nc+1
+        tree = TernaryTree(j1.pos,j2.pos,self.time_spent+t,self.num_success+nc)
+        nc, l, pos = tree.branching()
+        return nc, [3] + l, [[self.pos1,self.pos2]]+pos
+
       # 1:0
       j1.pos = self.pos1
-      t=j1.next(1)
+      t, _ = j1.next(1)
       j1.move(1,t)
-      print('0: ', self.pos1, j1.pos)
       if j1.pos < self.pos1:
         nc_cand[0] = 1
       tree = TernaryTree(j1.pos,self.pos2,self.time_spent+t,self.num_success+nc_cand[0])
-      nc_cand[0], l_cand[0] = tree.branching()
+      nc_cand[0], l_cand[0], pos_cand[0] = tree.branching()
 
       # 0.5:0.5
       j1.pos = self.pos1
       j2.pos = self.pos2
-      t1=j1.next(0.5)
-      t2=j2.next(0.5)
+      t1, _ =j1.next(0.5)
+      t2, _ =j2.next(0.5)
 
       t=t2
       if t1<t2:
         t=t1
       j1.move(0.5,t)
       j2.move(0.5,t)
-      print('1: ', self.pos1, j1.pos)
-      print('1: ', self.pos2, j2.pos)
 
       if j1.pos < self.pos1:
         nc_cand[1] = nc_cand[1]+1
       if j2.pos < self.pos2:
         nc_cand[1] = nc_cand[1]+1
       tree = TernaryTree(j1.pos,j2.pos,self.time_spent+t,self.num_success+nc_cand[1])
-      nc_cand[1], l_cand[1] = tree.branching()
+      nc_cand[1], l_cand[1], pos_cand[1] = tree.branching()
 
       # 0:1
       j2.pos = self.pos2
-      t=j2.next(1)
+      t, _ =j2.next(1)
       j2.move(1,t)
-      print('2: ', self.pos2, j2.pos)
       if j2.pos < self.pos2:
         nc_cand[2] = 1
       tree = TernaryTree(self.pos1,j2.pos,self.time_spent+t,self.num_success+nc_cand[2])
-      nc_cand[2], l_cand[2] = tree.branching()
+      nc_cand[2], l_cand[2], pos_cand[2] = tree.branching()
 
       index, max_val = -1, -1
       for i in range(len(nc_cand)):
         if nc_cand[i] > max_val:
           index, max_val = i, nc_cand[i]
-      return max_val, [index] + l_cand[index]
+      #index=1   # fair jobs
+      return nc_cand[index], [index] + l_cand[index], [[self.pos1,self.pos2]]+pos_cand[index]
 
 
 options=[]
