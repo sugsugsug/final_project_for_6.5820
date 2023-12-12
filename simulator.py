@@ -38,8 +38,8 @@ class Job():
     else:
       self.pos = pos
 
-j1=Job(10, [[7,10]])
-j2=Job(10, [[2,4],[6,7],[9,10]])
+j1=Job(10, [[5,10]])
+j2=Job(10, [[4,10]])
 len_gen = 100
 
 class TernaryTree():
@@ -131,5 +131,84 @@ a,b,c = main_tree.branching()
 print('num of successful jobs : ', a)
 print('selected branch list   : ', b)
 print('each timeline list     : ', c)
+
+
+# convert to ns3
+
+com_time1=0
+com_time2=0
+data_time1=0
+data_time2=0
+
+j1_list = []
+j2_list = []
+
+for i in range(len(b)):
+  t1=0
+  b1=0
+  t2=0
+  b2=0
+  j1.pos = c[i][0]
+  j2.pos = c[i][1]
+  if b[i] == -1:
+    break
+  elif (b[i] == 0 or b[i] == 2 or b[i] == 3):
+    t1, b1=j1.next(1)
+    t2, b2=j2.next(1)
+  else:  # b[i] = 1
+    t1, b1=j1.next(0.5)
+    t2, b2=j2.next(0.5)
+
+
+  if b1 == 0:
+    if data_time1 != 0:
+      j1_list = j1_list + [[com_time1,data_time1]]
+      com_time1=0
+      data_time1=0
+  if b2 == 0:
+    if data_time2 != 0:
+      j2_list = j2_list + [[com_time2,data_time2]]
+      com_time2=0
+      data_time2=0
+
+  min_t = t1
+  if t2 < t1:
+    min_t = t2
+
+  if b1 == 0 and b2 == 0:
+    com_time1 = com_time1+min_t
+    com_time2 = com_time2+min_t
+  elif b1 == 0 and b2 != 0:
+    com_time1 = com_time1+min_t
+    data_time2 = data_time2 + min_t
+  elif b1 != 0 and b2 == 0:
+    data_time1 = data_time1 + min_t
+    com_time2 = com_time2 + min_t
+  else:
+    if b[i] == 0:
+      data_time1 = data_time1 + min_t
+      if data_time2 != 0:
+        j2_list = j2_list + [[com_time2,data_time2]]
+        com_time2=0
+        data_time2=0
+      com_time2 = com_time2 + min_t
+    elif b[i] == 2:
+      data_time2 = data_time2 + min_t
+      if data_time1 != 0:
+        j1_list = j1_list + [[com_time1,data_time1]]
+        com_time1=0
+        data_time1=0
+      com_time1 = com_time1 + min_t
+    else: # b[i] == 1
+      data_time1 = data_time1 + min_t/2
+      data_time2 = data_time2 + min_t/2
+
+print('j1_list: ',j1_list)
+print('j2_list: ',j2_list)
+
+
+
+  
+
 
 
